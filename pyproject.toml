@@ -2,7 +2,7 @@
 name = "nlp-jp-gears"
 version = "0.1.0"
 description = ""
-authors = ["tokusumi <>"]
+authors = ["tokusumi"]
 readme = 'README.md'
 
 repository = "https://github.com/tokusumi/nlp-jp-gears"
