@@ -1,5 +1,5 @@
 name: Run Tests
-on: push
+on: [push, pull_request]
 
 jobs:
   pytest:
@@ -12,12 +12,12 @@ jobs:
       with:
         python_version: 3.6.8
         poetry_version: 0.12.17
-        working_directory: ./nlp-jp-gears 
+        working_directory: ./
         args: install
     - name: Run pytest
       uses: abatilo/actions-poetry@v1.5.0
       with:
         python_version: 3.6.8
         poetry_version: 0.12.17
-        working_directory: ./nlp-jp-gears
+        working_directory: ./
         args: run python -m pytest --cov=src --cov-branch --cov-fail-under=100 tests/
