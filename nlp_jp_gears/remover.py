@@ -1,5 +1,5 @@
-import re
 from typing import Optional, List, Tuple, Callable
+from nlp_jp_gears.utils import delete_by_regex
 
 
 class AbstractRemover:
@@ -17,17 +17,6 @@ class AbstractRemover:
 
     def __call__(self, text: str):
         raise NotImplementedError
-
-
-def delete_by_regex(delete_regex: str) -> Callable[[str], str]:
-    """implement replacement with regex"""
-    compiled_regex = re.compile(delete_regex)
-
-    def remove(text: str) -> str:
-        out = compiled_regex.sub("", text)
-        return out
-
-    return remove
 
 
 class TextBtwBracketsRemover(AbstractRemover):

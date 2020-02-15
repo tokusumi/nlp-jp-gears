@@ -1,12 +1,25 @@
-from typing import Optional, List
+from typing import Optional, List, Callable, Dict, Iterator
+from nlp_jp_gears.utils import replace_by_dict
 
 
-def zen_to_han(targets: Optional[List[str]] = None,
-               excludes: Optional[List[str]] = None,
-               symbol: bool = True,
-               number: bool = True,
-               alphabet: bool = True
-               ):
+class AbstractZenHanConverter:
+    def __init__(
+        self,
+        targets: Optional[List[str]] = None,
+        excludes: Optional[List[str]] = None,
+        symbol: bool = True,
+        number: bool = True,
+        alphabet: bool = True,
+        *args,
+        **kwargs,
+    ):
+        self._converter: Optional[Callable[..., str]] = None
+
+    def __call__(self, text: str):
+        raise NotImplementedError
+
+
+class ZenToHanConverter(AbstractZenHanConverter):
     """
     convert Japanese "zenkaku" text into "hankaku" text
     Supports:
@@ -15,59 +28,154 @@ def zen_to_han(targets: Optional[List[str]] = None,
         ０１２３４５６７８９
         ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ
         ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ
-    args:
+
+    Args:
         targets: declaire target characters. if None (default), all support characters is converted.
         excludes: declaire characters to keep format.
         symbol: if True (default), symbol is converted.
         number: if True (default), number is converted.
         alphabet: if True (default), alphabet is converted.
     """
-    targets = tuple(targets) if targets else {}
-    excludes = tuple(excludes) if excludes else {}
-    dic = {chr(0xFF01 + i): chr(0x21 + i) for i in _range(symbol, number, alphabet)}
-    if targets:
-        dic = {key: val for key, val in dic.items() if key in targets}
-    if excludes:
-        dic = {key: val for key, val in dic.items() if key not in excludes}
 
-    def _zen_to_han(text):
-        return text.translate(str.maketrans(dic))
-    return _zen_to_han
+    def __init__(
+        self,
+        targets: Optional[List[str]] = None,
+        excludes: Optional[List[str]] = None,
+        symbol: bool = True,
+        number: bool = True,
+        alphabet: bool = True,
+        *args,
+        **kwargs,
+    ):
+        dic = get_zen_to_han_dic(targets, excludes, symbol, number, alphabet)
+        self.converts = "".join(dic)
+        self._converter: Callable[[str], str] = replace_by_dict(dic)
+
+    def __call__(self, text: str) -> str:
+        """Convert Japanese "zenkaku" text of input text
+        into "hankaku" text
+
+        Args:
+            text: input zenkaku text
+
+        Returns:
+            output hankaku text
+        """
+        return self._converter(text)
 
 
-def han_to_zen(targets: Optional[List[str]] = None,
-               excludes: Optional[List[str]] = None,
-               symbol: bool = True,
-               number: bool = True,
-               alphabet: bool = True):
+def get_zen_to_han_dic(
+    targets: Optional[List[str]] = None,
+    excludes: Optional[List[str]] = None,
+    symbol: bool = True,
+    number: bool = True,
+    alphabet: bool = True,
+) -> Dict[str, str]:
     """
-    convert Japanese "hankaku" symbols into "zenkaku" symbols
+    Convert Japanese "zenkaku" text into "hankaku" text
+    Supports:
+        ！＂＃＄％＆＇（）＊＋，－．／
+        ：；＜＝＞？＠［＼］＾＿｀｛｜｝～
+        ０１２３４５６７８９
+        ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ
+        ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ
+
+    Args:
+        targets: declaire target characters. if None (default), all support characters is converted.
+        excludes: declaire characters to keep format.
+        symbol: if True (default), symbol is converted.
+        number: if True (default), number is converted.
+        alphabet: if True (default), alphabet is converted.
+    """
+    tar = tuple(targets) if targets else {}
+    exc = tuple(excludes) if excludes else {}
+    dic = {chr(0xFF01 + i): chr(0x21 + i) for i in _range(symbol, number, alphabet)}
+    if tar:
+        dic = {key: val for key, val in dic.items() if key in tar}
+    if exc:
+        dic = {key: val for key, val in dic.items() if key not in exc}
+
+    return dic
+
+
+class HanToZenConverter(AbstractZenHanConverter):
+    """
+    Convert Japanese "hankaku" symbols into "zenkaku" symbols
     Supports:
         !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
         0123456789
         ABCDEFGHIJKLMNOPQRSTUVWXYZ
         abcdefghijklmnopqrstuvwxyz
-    args:
+
+    Args:
         targets: declaire target characters. if None (default), all support characters is converted.
         excludes: declaire characters to keep format.
         symbol: if True (default), symbol is converted.
         number: if True (default), number is converted.
         alphabet: if True (default), alphabet is converted.
     """
-    targets = tuple(targets) if targets else {}
-    excludes = tuple(excludes) if excludes else {}
+
+    def __init__(
+        self,
+        targets: Optional[List[str]] = None,
+        excludes: Optional[List[str]] = None,
+        symbol: bool = True,
+        number: bool = True,
+        alphabet: bool = True,
+        *args,
+        **kwargs,
+    ):
+        dic = get_han_to_zen_dic(targets, excludes, symbol, number, alphabet)
+        self.converts = "".join(dic)
+        self._converter: Callable[[str], str] = replace_by_dict(dic)
+
+    def __call__(self, text: str) -> str:
+        """Convert Japanese "hankaku" text of input text
+        into "zenkaku" text
+
+        Args:
+            text: input hankaku text
+
+        Returns:
+            output zenkaku text
+        """
+        return self._converter(text)
+
+
+def get_han_to_zen_dic(
+    targets: Optional[List[str]] = None,
+    excludes: Optional[List[str]] = None,
+    symbol: bool = True,
+    number: bool = True,
+    alphabet: bool = True,
+) -> Dict[str, str]:
+    """
+    Convert Japanese "hankaku" symbols into "zenkaku" symbols
+    Supports:
+        !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+        0123456789
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        abcdefghijklmnopqrstuvwxyz
+
+    Args:
+        targets: declaire target characters. if None (default), all support characters is converted.
+        excludes: declaire characters to keep format.
+        symbol: if True (default), symbol is converted.
+        number: if True (default), number is converted.
+        alphabet: if True (default), alphabet is converted.
+    """
+    tar = tuple(targets) if targets else {}
+    exc = tuple(excludes) if excludes else {}
     dic = {chr(0x21 + i): chr(0xFF01 + i) for i in _range(symbol, number, alphabet)}
-    if targets:
-        dic = {key: val for key, val in dic.items() if key in targets}
-    if excludes:
-        dic = {key: val for key, val in dic.items() if key not in excludes}
+    if tar:
+        dic = {key: val for key, val in dic.items() if key in tar}
+    if exc:
+        dic = {key: val for key, val in dic.items() if key not in exc}
 
-    def _han_to_zen(text):
-        return text.translate(str.maketrans(dic))
-    return _han_to_zen
+    return dic
 
 
-def _range(symbol: bool, number: bool, alphabet: bool):
+def _range(symbol: bool, number: bool, alphabet: bool) -> Iterator[int]:
     if symbol:
         for i in range(15):
             yield i
