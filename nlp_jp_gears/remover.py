@@ -10,8 +10,6 @@ class AbstractRemover:
         *args,
         **kwargs,
     ):
-        self._targets = targets
-        self._excludes = excludes
         self._remover: Optional[Callable[..., str]] = None
         self.deletes: str = ""
 
@@ -37,8 +35,7 @@ class TextBtwBracketsRemover(AbstractRemover):
         *args,
         **kwargs,
     ):
-        self._targets = targets
-        self._excludes = excludes
+        # deletes-attribute shows intrinsic all targets a instance deletes
         self.deletes, delete_regex = _get_delete_pattern_and_regex(targets, excludes)
         self._remover: Callable[[str], str] = delete_by_regex(delete_regex)
 

@@ -48,6 +48,7 @@ class ZenToHanConverter(AbstractZenHanConverter):
         **kwargs,
     ):
         dic = get_zen_to_han_dic(targets, excludes, symbol, number, alphabet)
+        # converts-attribute shows intrinsic all targets a instance make convert
         self.converts = "".join(dic)
         self._converter: Callable[[str], str] = replace_by_dict(dic)
 
