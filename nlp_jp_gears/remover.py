@@ -11,7 +11,7 @@ class AbstractRemover:
         **kwargs,
     ):
         self._remover: Optional[Callable[..., str]] = None
-        self.deletes: str = ""
+        self.removes: str = ""
 
     def __call__(self, text: str):
         raise NotImplementedError
@@ -21,7 +21,7 @@ class TextBtwBracketsRemover(AbstractRemover):
     """
     remove brackets and the contents.
     support:
-        <>{}\[\]()「」『』（）［］〈〉《》〔〕｛｝«»‹›
+        <>{}[]()「」『』（）［］〈〉《》〔〕｛｝«»‹›
 
     Args:
         targets: declaire target brackets. if None (default), all support brackets is removed.
@@ -35,8 +35,8 @@ class TextBtwBracketsRemover(AbstractRemover):
         *args,
         **kwargs,
     ):
-        # deletes-attribute shows intrinsic all targets a instance deletes
-        self.deletes, delete_regex = _get_delete_pattern_and_regex(targets, excludes)
+        # removes-attribute shows intrinsic all targets a instance removes
+        self.removes, delete_regex = _get_delete_pattern_and_regex(targets, excludes)
         self._remover: Callable[[str], str] = delete_by_regex(delete_regex)
 
     def __call__(self, text: str) -> str:
