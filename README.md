@@ -1,5 +1,7 @@
 # NLP JP Gears
 
+![](https://github.com/tokusumi/nlp-jp-gears/workflows/Tests/badge.svg)
+
 ## Overview
 
 日本語の自然言語処理で頻出の前処理をまとめたものです。pipelineをしいて、複数の処理をまとめることができます。
